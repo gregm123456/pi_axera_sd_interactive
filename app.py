@@ -26,15 +26,19 @@ def run_generate(url, mode, prompt, seed, init_image, strength, resize_mode):
     else:
         return None, result["status"]
 
-def run_interrogate(url, image, mode, categories_json):
+def run_interrogate(url, image, mode, *category_inputs):
     client = get_client(url)
     if mode == "Standard":
         res = client.interrogate(image)
     else:
-        try:
-            categories = json.loads(categories_json)
-        except:
-            return "Invalid Categories JSON"
+        categories = {}
+        for i in range(0, len(category_inputs), 2):
+            name = category_inputs[i]
+            values_str = category_inputs[i+1]
+            if name.strip() and values_str.strip():
+                categories[name.strip()] = [v.strip() for v in values_str.split(',') if v.strip()]
+        if not categories:
+            return "No valid categories provided"
         res = client.interrogate_structured(image, categories)
     
     return json.dumps(res, indent=2)
@@ -95,11 +99,20 @@ with gr.Blocks(title="Pi Axera SD Explorer") as demo:
                     inter_mode = gr.Radio(["Standard", "Structured"], label="Interrogation Mode", value="Standard")
                     
                     with gr.Group(visible=False) as structured_params:
-                        categories_input = gr.Textbox(
-                            label="Categories (JSON)", 
-                            value='{"gender": ["man", "woman"], "hair": ["black", "blonde", "pink"]}',
-                            lines=5
-                        )
+                        gr.Markdown("Add categories below (leave empty to skip):")
+                        categories_components = []
+                        for i in range(10):
+                            with gr.Row():
+                                if i == 0:
+                                    cat_name = gr.Textbox(label=f"Category {i+1} Name", value="gender")
+                                    cat_values = gr.Textbox(label=f"Category {i+1} Values", value="man, woman")
+                                elif i == 1:
+                                    cat_name = gr.Textbox(label=f"Category {i+1} Name", value="hair")
+                                    cat_values = gr.Textbox(label=f"Category {i+1} Values", value="black, blonde, pink")
+                                else:
+                                    cat_name = gr.Textbox(label=f"Category {i+1} Name", placeholder="e.g., gender")
+                                    cat_values = gr.Textbox(label=f"Category {i+1} Values", placeholder="e.g., man, woman")
+                            categories_components.extend([cat_name, cat_values])
                     
                     def toggle_inter(m):
                         return gr.update(visible=(m == "Structured"))
@@ -113,7 +126,7 @@ with gr.Blocks(title="Pi Axera SD Explorer") as demo:
 
             interrogate_btn.click(
                 run_interrogate,
-                inputs=[api_url, inter_img, inter_mode, categories_input],
+                inputs=[api_url, inter_img, inter_mode] + categories_components,
                 outputs=[inter_output]
             )
 
