@@ -4,17 +4,27 @@ Interactive web interface for exploring the Pi Axera Stable Diffusion API.
 
 ## Setup
 
-1. Create and activate the virtual environment:
+1. Create the virtual environment (if it doesn't exist):
+   ```bash
+   python -m venv .venv
+   ```
+
+2. Activate the virtual environment:
    ```bash
    source .venv/bin/activate
    ```
 
-2. Run the application:
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. Run the application:
    ```bash
    python app.py
    ```
 
-3. Open the provided URL (usually `http://127.0.0.1:7860`) in your browser.
+5. Open the provided URL (usually `http://127.0.0.1:7860`) in your browser.
 
 ## Features
 

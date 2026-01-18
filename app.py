@@ -2,6 +2,10 @@ import gradio as gr
 import json
 from api_client import AxeraClient
 
+# Portrait enhancer constants
+IMAGE_PROMPT_PREFIX = "adult, face portrait photograph, "
+IMAGE_PROMPT_SUFFIX = ", 8k, realistic"
+
 # JavaScript for Cmd+Enter keyboard shortcut
 shortcut_js = """
 <script>
@@ -30,10 +34,15 @@ document.addEventListener('keydown', handleKeyDown, false);
 def get_client(url):
     return AxeraClient(url)
 
-def run_generate(url, mode, prompt, seed, init_image, strength, resize_mode):
+def run_generate(url, mode, prompt, seed, init_image, strength, resize_mode, portrait_enhancer):
     client = get_client(url)
     if seed is None or seed == "":
         seed = -1
+    
+    # Apply portrait enhancers if enabled
+    if portrait_enhancer:
+        prompt = IMAGE_PROMPT_PREFIX + prompt + IMAGE_PROMPT_SUFFIX
+    
     result = client.generate(
         mode=mode,
         prompt=prompt,
@@ -82,6 +91,7 @@ with gr.Blocks(title="Pi Axera SD Explorer") as demo:
                 with gr.Column():
                     gen_mode = gr.Radio(["txt2img", "img2img"], label="Mode", value="txt2img")
                     prompt = gr.Textbox(label="Prompt", placeholder="A red fox in the snow...", lines=3)
+                    portrait_enhancer = gr.Checkbox(label="Add Portrait Enhancers", value=False)
                     seed = gr.Number(label="Seed (-1 for random)", value=-1, precision=0)
                     
                     with gr.Group(visible=False) as i2i_params:
@@ -115,13 +125,13 @@ with gr.Blocks(title="Pi Axera SD Explorer") as demo:
 
             generate_btn.click(
                 run_generate,
-                inputs=[api_url, gen_mode, prompt, seed, init_img, strength, resize_mode],
+                inputs=[api_url, gen_mode, prompt, seed, init_img, strength, resize_mode, portrait_enhancer],
                 outputs=[output_img, output_meta, seed]
             )
             
             prompt.submit(
                 run_generate,
-                inputs=[api_url, gen_mode, prompt, seed, init_img, strength, resize_mode],
+                inputs=[api_url, gen_mode, prompt, seed, init_img, strength, resize_mode, portrait_enhancer],
                 outputs=[output_img, output_meta, seed]
             )
 
