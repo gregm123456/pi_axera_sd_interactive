@@ -43,7 +43,7 @@ with gr.Blocks(title="Pi Axera SD Explorer") as demo:
     gr.Markdown("# 🥧 Pi Axera SD Interactive Explorer")
     
     with gr.Accordion("⚙️ API Configuration", open=True):
-        api_url = gr.Textbox(label="API Base URL", value="http://127.0.0.1:5000", placeholder="http://pi-ip:5000")
+        api_url = gr.Textbox(label="API Base URL", value="http://m5:5000", placeholder="http://pi-ip:5000")
 
     with gr.Tabs():
         with gr.Tab("🎨 Image Generation"):
