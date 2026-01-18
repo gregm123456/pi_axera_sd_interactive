@@ -55,7 +55,16 @@ with gr.Blocks(title="Pi Axera SD Explorer") as demo:
                     
                     with gr.Group(visible=False) as i2i_params:
                         init_img = gr.Image(label="Init Image", type="pil")
-                        strength = gr.Slider(label="Denoising Strength", minimum=0, maximum=1, value=0.5, step=0.01)
+                        strength = gr.Dropdown(
+                            label="Denoising Strength", 
+                            choices=[
+                                ("0.25: Minimal changes (1 step)", 0.25),
+                                ("0.50: Balanced (2 steps)", 0.5),
+                                ("0.75: Strong modification (3 steps)", 0.75),
+                                ("1.00: Complete reimagining (4 steps)", 1.0)
+                            ], 
+                            value=0.5
+                        )
                         resize_mode = gr.Dropdown(
                             label="Resize Mode", 
                             choices=[("0: Stretch", 0), ("1: Crop", 1), ("2: Pad", 2)], 
