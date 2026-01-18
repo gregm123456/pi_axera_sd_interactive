@@ -7,6 +7,8 @@ def get_client(url):
 
 def run_generate(url, mode, prompt, seed, init_image, strength, resize_mode):
     client = get_client(url)
+    if seed is None or seed == "":
+        seed = -1
     result = client.generate(
         mode=mode,
         prompt=prompt,
@@ -22,9 +24,9 @@ def run_generate(url, mode, prompt, seed, init_image, strength, resize_mode):
             "Total Time (ms)": result["total_time_ms"],
             "Text Time (ms)": result["text_time_ms"],
         }
-        return result["image"], json.dumps(metadata, indent=2)
+        return result["image"], json.dumps(metadata, indent=2), seed
     else:
-        return None, result["status"]
+        return None, result["status"], seed
 
 def run_interrogate(url, image, mode, *category_inputs):
     client = get_client(url)
@@ -89,7 +91,7 @@ with gr.Blocks(title="Pi Axera SD Explorer") as demo:
             generate_btn.click(
                 run_generate,
                 inputs=[api_url, gen_mode, prompt, seed, init_img, strength, resize_mode],
-                outputs=[output_img, output_meta]
+                outputs=[output_img, output_meta, seed]
             )
 
         with gr.Tab("🔍 Interrogation"):
