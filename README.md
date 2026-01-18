@@ -51,13 +51,13 @@ Interactive web interface for exploring and interacting with the Pi Axera Stable
 
 ### Image Generation (txt2img & img2img)
 
-![Image Generation Example](./reference_repo_docs/pi_axera_sd_interactive_img2img_example.png)
+![Image Generation Example](./reference_repo_docs/screenshot_img2img.png)
 
 *Example: Generating an image from a prompt and modifying an initial image using img2img mode. Metadata and workflow actions are shown below the generated image.*
 
 ### Image Interrogation
 
-![Interrogation Example](./reference_repo_docs/pi_axera_sd_interactive_interrogation_example.png)
+![Interrogation Example](./reference_repo_docs/screenshot_interrogate.png)
 
 *Example: Interrogating a generated image to obtain tags, scores, and captions using the Standard interrogation mode.*
 
