@@ -2,6 +2,31 @@ import gradio as gr
 import json
 from api_client import AxeraClient
 
+# JavaScript for Cmd+Enter keyboard shortcut
+shortcut_js = """
+<script>
+function handleKeyDown(e) {
+    // Check if Enter is pressed with Cmd (metaKey) or Ctrl
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        // Prevent default behavior
+        e.preventDefault();
+        // Try to click the interrogate button first (if on interrogation tab)
+        const interrogateBtn = document.getElementById('interrogate-btn');
+        if (interrogateBtn) {
+            interrogateBtn.click();
+        } else {
+            // Otherwise click the generate button
+            const generateBtn = document.getElementById('generate-btn');
+            if (generateBtn) {
+                generateBtn.click();
+            }
+        }
+    }
+}
+document.addEventListener('keydown', handleKeyDown, false);
+</script>
+"""
+
 def get_client(url):
     return AxeraClient(url)
 
@@ -82,13 +107,19 @@ with gr.Blocks(title="Pi Axera SD Explorer") as demo:
                     
                     gen_mode.change(toggle_i2i, gen_mode, i2i_params)
                     
-                    generate_btn = gr.Button("Generate ✨", variant="primary")
+                    generate_btn = gr.Button("Generate ✨", variant="primary", elem_id="generate-btn")
                 
                 with gr.Column():
                     output_img = gr.Image(label="Generated Image")
                     output_meta = gr.Code(label="Metadata", language="json")
 
             generate_btn.click(
+                run_generate,
+                inputs=[api_url, gen_mode, prompt, seed, init_img, strength, resize_mode],
+                outputs=[output_img, output_meta, seed]
+            )
+            
+            prompt.submit(
                 run_generate,
                 inputs=[api_url, gen_mode, prompt, seed, init_img, strength, resize_mode],
                 outputs=[output_img, output_meta, seed]
@@ -121,7 +152,7 @@ with gr.Blocks(title="Pi Axera SD Explorer") as demo:
                     
                     inter_mode.change(toggle_inter, inter_mode, structured_params)
                     
-                    interrogate_btn = gr.Button("Analyze 🔎")
+                    interrogate_btn = gr.Button("Analyze 🔎", elem_id="interrogate-btn")
                 
                 with gr.Column():
                     inter_output = gr.Code(label="Interrogation Results", language="json")
@@ -133,4 +164,4 @@ with gr.Blocks(title="Pi Axera SD Explorer") as demo:
             )
 
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0")
+    demo.launch(server_name="0.0.0.0", head=shortcut_js)
