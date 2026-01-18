@@ -6,28 +6,34 @@ from api_client import AxeraClient
 IMAGE_PROMPT_PREFIX = "adult, face portrait photograph, "
 IMAGE_PROMPT_SUFFIX = ", 8k, realistic"
 
+
+
 # JavaScript for Cmd+Enter keyboard shortcut
 shortcut_js = """
 <script>
 function handleKeyDown(e) {
-    // Check if Enter is pressed with Cmd (metaKey) or Ctrl
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-        // Prevent default behavior
         e.preventDefault();
-        // Try to click the interrogate button first (if on interrogation tab)
-        const interrogateBtn = document.getElementById('interrogate-btn');
-        if (interrogateBtn) {
-            interrogateBtn.click();
-        } else {
-            // Otherwise click the generate button
-            const generateBtn = document.getElementById('generate-btn');
-            if (generateBtn) {
-                generateBtn.click();
+        e.stopPropagation();
+
+        // Sync values by blurring active element
+        if (document.activeElement && document.activeElement.blur) {
+            document.activeElement.blur();
+        }
+
+        try {
+            const activeTab = document.querySelector('#main_tabs [role="tab"][aria-selected="true"]');
+            if (activeTab && activeTab.innerText.includes('Interrogation')) {
+                document.getElementById('interrogate-btn')?.click();
+            } else {
+                document.getElementById('generate-btn')?.click();
             }
+        } catch (err) {
+            document.getElementById('generate-btn')?.click();
         }
     }
 }
-document.addEventListener('keydown', handleKeyDown, false);
+document.addEventListener('keydown', handleKeyDown, true);
 </script>
 """
 
@@ -85,8 +91,8 @@ with gr.Blocks(title="Pi Axera SD Explorer") as demo:
     with gr.Accordion("⚙️ API Configuration", open=True):
         api_url = gr.Textbox(label="API Base URL", value="http://m5:5000", placeholder="http://pi-ip:5000")
 
-    with gr.Tabs():
-        with gr.Tab("🎨 Image Generation"):
+    with gr.Tabs(elem_id="main_tabs") as tabs:
+        with gr.Tab("🎨 Image Generation", id="tab_gen"):
             with gr.Row():
                 with gr.Column():
                     gen_mode = gr.Radio(["txt2img", "img2img"], label="Mode", value="txt2img")
@@ -122,20 +128,23 @@ with gr.Blocks(title="Pi Axera SD Explorer") as demo:
                 with gr.Column():
                     output_img = gr.Image(label="Generated Image")
                     output_meta = gr.Code(label="Metadata", language="json")
+                    with gr.Row():
+                        send_to_i2i_btn = gr.Button("📲 Send to img2img")
+                        send_to_inter_btn = gr.Button("🔍 Send to Interrogation")
 
             generate_btn.click(
                 run_generate,
                 inputs=[api_url, gen_mode, prompt, seed, init_img, strength, resize_mode, portrait_enhancer],
                 outputs=[output_img, output_meta, seed]
             )
-            
+
             prompt.submit(
                 run_generate,
                 inputs=[api_url, gen_mode, prompt, seed, init_img, strength, resize_mode, portrait_enhancer],
                 outputs=[output_img, output_meta, seed]
             )
 
-        with gr.Tab("🔍 Interrogation"):
+        with gr.Tab("🔍 Interrogation", id="tab_inter"):
             with gr.Row():
                 with gr.Column():
                     inter_img = gr.Image(label="Image to Interrogate", type="pil")
@@ -171,6 +180,35 @@ with gr.Blocks(title="Pi Axera SD Explorer") as demo:
                 run_interrogate,
                 inputs=[api_url, inter_img, inter_mode] + categories_components,
                 outputs=[inter_output]
+            )
+
+            # Image transfer logic
+            send_to_i2i_btn.click(
+                fn=lambda x: (x, "img2img"),
+                inputs=[output_img],
+                outputs=[init_img, gen_mode]
+            )
+            
+            send_to_inter_btn.click(
+                fn=lambda x: x,
+                inputs=[output_img],
+                outputs=[inter_img],
+                js="""
+                (x) => {
+                    setTimeout(() => {
+                        const tabButtons = document.querySelectorAll('#main_tabs .tab-nav button');
+                        if (tabButtons && tabButtons[1]) {
+                            tabButtons[1].click();
+                        } else {
+                            // Fallback to text matching if structure is different
+                            const allTabs = Array.from(document.querySelectorAll('button[role="tab"]'));
+                            const interTab = allTabs.find(b => b.textContent.includes('Interrogation'));
+                            if (interTab) interTab.click();
+                        }
+                    }, 50);
+                    return x;
+                }
+                """
             )
 
 if __name__ == "__main__":
