@@ -110,7 +110,7 @@ with gr.Blocks(title="Pi Axera SD Explorer") as demo:
                                 ("0.75: Strong modification (3 steps)", 0.75),
                                 ("1.00: Complete reimagining (4 steps)", 1.0)
                             ], 
-                            value=0.5
+                            value=0.75
                         )
                         resize_mode = gr.Dropdown(
                             label="Resize Mode", 
@@ -157,13 +157,13 @@ with gr.Blocks(title="Pi Axera SD Explorer") as demo:
                             with gr.Row():
                                 if i == 0:
                                     cat_name = gr.Textbox(label=f"Category {i+1} Name", value="gender")
-                                    cat_values = gr.Textbox(label=f"Category {i+1} Values", value="man, woman")
+                                    cat_values = gr.Textbox(label=f"Category {i+1} Values", value="agender, androgynous, bigender, genderfluid, genderqueer, man, non-binary, transgender, two-spirit, woman")
                                 elif i == 1:
                                     cat_name = gr.Textbox(label=f"Category {i+1} Name", value="hair")
-                                    cat_values = gr.Textbox(label=f"Category {i+1} Values", value="black, blonde, pink")
+                                    cat_values = gr.Textbox(label=f"Category {i+1} Values", value="auburn hair, black hair, blonde hair, blue hair, brown hair, chestnut hair, ginger hair, gray hair, green hair, pink hair, purple hair, red hair, white hair")
                                 else:
                                     cat_name = gr.Textbox(label=f"Category {i+1} Name", placeholder="e.g., gender")
-                                    cat_values = gr.Textbox(label=f"Category {i+1} Values", placeholder="e.g., man, woman")
+                                    cat_values = gr.Textbox(label=f"Category {i+1} Values", placeholder="e.g., agender, androgynous, bigender, genderfluid, genderqueer, man, non-binary, transgender, two-spirit, woman")
                             categories_components.extend([cat_name, cat_values])
                     
                     def toggle_inter(m):
