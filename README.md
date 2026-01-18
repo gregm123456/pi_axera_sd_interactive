@@ -3,6 +3,17 @@
 
 Interactive web interface for exploring and interacting with the Pi Axera Stable Diffusion API.
 
+## Prerequisites
+
+This application requires a running instance of the Pi Axera SD Image Generator Service to function. The service provides the backend API for image generation and interrogation.
+
+- **Service Repository**: [https://github.com/gregm123456/sd1.5-lcm.axera](https://github.com/gregm123456/sd1.5-lcm.axera)
+- **Service Documentation**: [pi_axera_sd_service](https://github.com/gregm123456/sd1.5-lcm.axera/tree/master/pi_axera_sd_service)
+
+Please follow the installation and setup instructions in the service's README to deploy the service on compatible hardware (e.g., Raspberry Pi with Axera AX650N). The service typically runs on port 5000.
+
+Once the service is running, configure the API Base URL in the application (default: `http://m5:5000` for a device named 'm5').
+
 ## Setup
 
 1. **Create the virtual environment (if it doesn't exist):**
