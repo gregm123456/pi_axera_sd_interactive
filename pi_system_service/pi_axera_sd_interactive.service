@@ -1,0 +1,14 @@
+[Unit]
+Description=Pi Axera SD Interactive Service
+After=network.target
+
+[Service]
+Type=simple
+User=@USER@
+WorkingDirectory=@PROJECT_DIR@
+ExecStart=@PROJECT_DIR@/pi_system_service/start_service.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

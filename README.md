@@ -38,6 +38,10 @@ Once the service is running, configure the API Base URL in the application (defa
 
 5. **Open the provided URL** (usually `http://127.0.0.1:7860`) in your browser.
 
+## Optional System Service Setup
+
+For running the application as a system service on Raspberry Pi or other Linux systems, see the [System Service Setup](pi_system_service/README.md) documentation.
+
 ---
 
 ## Features
