@@ -40,33 +40,50 @@ document.addEventListener('keydown', handleKeyDown, true);
 def get_client(url):
     return AxeraClient(url)
 
-def run_generate(url, mode, prompt, seed, init_image, strength, resize_mode, portrait_enhancer):
+def run_generate(url, mode, prompt, seed, init_image, strength, resize_mode, portrait_enhancer, recursive, cycles):
     client = get_client(url)
-    if seed is None or seed == "":
-        seed = -1
+    current_seed = int(seed) if (seed is not None and seed != "") else -1
     
-    # Apply portrait enhancers if enabled
-    if portrait_enhancer:
-        prompt = IMAGE_PROMPT_PREFIX + prompt + IMAGE_PROMPT_SUFFIX
-    
-    result = client.generate(
-        mode=mode,
-        prompt=prompt,
-        seed=int(seed),
-        init_image=init_image,
-        denoising_strength=strength,
-        resize_mode=int(resize_mode)
-    )
-    
-    if "image" in result:
-        metadata = {
-            "Seed": result["seed"],
-            "Total Time (ms)": result["total_time_ms"],
-            "Text Time (ms)": result["text_time_ms"],
-        }
-        return result["image"], json.dumps(metadata, indent=2), seed
-    else:
-        return None, result["status"], seed
+    # Calculate total iterations
+    total_iterations = int(cycles) if (recursive and mode == "img2img") else 1
+    current_init_image = init_image
+
+    for i in range(total_iterations):
+        # Apply portrait enhancers if enabled (only once or for every cycle? Prompt stays same)
+        current_prompt = prompt
+        if portrait_enhancer:
+            current_prompt = IMAGE_PROMPT_PREFIX + prompt + IMAGE_PROMPT_SUFFIX
+        
+        result = client.generate(
+            mode=mode,
+            prompt=current_prompt,
+            seed=current_seed,
+            init_image=current_init_image,
+            denoising_strength=strength,
+            resize_mode=int(resize_mode)
+        )
+        
+        if "image" in result:
+            metadata = {
+                "Cycle": f"{i+1}/{total_iterations}" if total_iterations > 1 else "1/1",
+                "Seed": result["seed"],
+                "Total Time (ms)": result["total_time_ms"],
+                "Text Time (ms)": result["text_time_ms"],
+            }
+            
+            # The init image should hold for the generation for which it's source
+            # So we yield the current result and the PREVIOUS init image (the one used for THIS generation)
+            # We yield 'seed' (the original input value) instead of 'result["seed"]' to preserve the -1
+            yield result["image"], json.dumps(metadata, indent=2), seed, current_init_image
+            
+            # For the next cycle, the generated image becomes the new init image
+            if total_iterations > 1:
+                current_init_image = result["image"]
+                # Keep current_seed as -1 if it was -1 to trigger a new random seed in the next iteration
+                # Otherwise, it remains the fixed seed provided by the user.
+        else:
+            yield None, result["status"], seed, current_init_image
+            break
 
 def run_interrogate(url, image, mode, *category_inputs):
     client = get_client(url)
@@ -117,6 +134,11 @@ with gr.Blocks(title="Pi Axera SD Explorer") as demo:
                             choices=[("0: Stretch", 0), ("1: Crop", 1), ("2: Pad", 2)], 
                             value=0
                         )
+                        with gr.Row():
+                            recursive = gr.Checkbox(label="Recursive Mode 🔁", value=False)
+                            cycles = gr.Slider(label="Cycles", minimum=2, maximum=10, step=1, value=2, visible=False)
+                        
+                        recursive.change(lambda x: gr.update(visible=x), recursive, cycles)
                     
                     def toggle_i2i(m):
                         return gr.update(visible=(m == "img2img"))
@@ -134,14 +156,14 @@ with gr.Blocks(title="Pi Axera SD Explorer") as demo:
 
             generate_btn.click(
                 run_generate,
-                inputs=[api_url, gen_mode, prompt, seed, init_img, strength, resize_mode, portrait_enhancer],
-                outputs=[output_img, output_meta, seed]
+                inputs=[api_url, gen_mode, prompt, seed, init_img, strength, resize_mode, portrait_enhancer, recursive, cycles],
+                outputs=[output_img, output_meta, seed, init_img]
             )
 
             prompt.submit(
                 run_generate,
-                inputs=[api_url, gen_mode, prompt, seed, init_img, strength, resize_mode, portrait_enhancer],
-                outputs=[output_img, output_meta, seed]
+                inputs=[api_url, gen_mode, prompt, seed, init_img, strength, resize_mode, portrait_enhancer, recursive, cycles],
+                outputs=[output_img, output_meta, seed, init_img]
             )
 
         with gr.Tab("🔍 Interrogation", id="tab_inter"):
