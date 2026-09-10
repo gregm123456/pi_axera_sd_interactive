@@ -12,7 +12,7 @@ This application requires a running instance of the Pi Axera SD Image Generator 
 
 Please follow the installation and setup instructions in the service's README to deploy the service on compatible hardware (e.g., Raspberry Pi with Axera AX650N). The service typically runs on port 5000.
 
-Once the service is running, configure the API Base URL in the application (default: `http://m5:5000` for a device named 'm5').
+Once the service is running, configure the API Base URL in the application (default: `http://localhost:5000` or `http://m5image:5000`).
 
 ## Setup
 
